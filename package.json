@@ -1,7 +1,7 @@
 {
   "name": "cordova-plugin-zkfinger",
   "version": "0.0.27",
-  "description": "A cordova plugin for the zkteco ZK9500 fingerprint reader",
+  "description": "A cordova plugin for the zkteco zk4500 fingerprint reader",
   "main": "plugin.xml",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,5 +14,5 @@
       "android"
     ]
   },
-  "keywords": ["zkteco","bixbyte","cordova","fingerprint","ZK9500"]
+  "keywords": ["zkteco","bixbyte","cordova","fingerprint","zk4500"]
 }
