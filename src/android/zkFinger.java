@@ -12,11 +12,18 @@ import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
 import com.zkteco.android.biometric.core.utils.LogHelper;
 import com.zkteco.android.biometric.core.utils.ToolUtils;
-import com.zkteco.android.biometric.module.fingervein.FingerVeinCaptureListener;
-import com.zkteco.android.biometric.module.fingervein.FingerVeinFactory;
-import com.zkteco.android.biometric.module.fingervein.FingerVeinSensor;
-import com.zkteco.android.biometric.module.fingervein.FingerVeinService;
-import com.zkteco.android.biometric.module.fingervein.exception.FingerVeinException;
+
+import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener;
+import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
+import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
+import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
+import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
+
+// import com.zkteco.android.biometric.module.fingervein.FingerVeinCaptureListener;
+// import com.zkteco.android.biometric.module.fingervein.FingerVeinFactory;
+// import com.zkteco.android.biometric.module.fingervein.FingerprintSensor;
+// import com.zkteco.android.biometric.module.fingervein.FingerVeinService;
+// import com.zkteco.android.biometric.module.fingervein.exception.FingerVeinException;
 import com.zkteco.zkfinger.FingerprintService;
 
 import java.io.BufferedWriter;
@@ -53,7 +60,7 @@ public class zkFinger extends CordovaPlugin
     private static final int VID = 6997;    //zkteco device VID always 6997
     private static final int PID = 288;    //fvs100 PID always 512
 
-    private FingerVeinSensor fingerVeinSensor = null;
+    private FingerprintSensor FingerprintSensor = null;
     private boolean bstart = false;
     private boolean bIsRegister = false;
     private int enrollCount = 3;
@@ -62,7 +69,7 @@ public class zkFinger extends CordovaPlugin
     private String[] regFVTemplates = new String[3];
     private int regID = 0;
 
-    private void startFingerVeinSensor(CallbackContext callbackContext)
+    private void startFingerprintSensor(CallbackContext callbackContext)
     {
         try
         {
@@ -76,7 +83,7 @@ public class zkFinger extends CordovaPlugin
             fingerprintParams.put(ParameterHelper.PARAM_KEY_VID, VID);
             //set pid
             fingerprintParams.put(ParameterHelper.PARAM_KEY_PID, PID);
-            fingerVeinSensor = FingerVeinFactory.createFingerprintSensor(context, TransportType.USB, fingerprintParams);
+            FingerprintSensor = FingerVeinFactory.createFingerprintSensor(context, TransportType.USB, fingerprintParams);
 
         }
         catch(Exception e)
@@ -91,7 +98,7 @@ public class zkFinger extends CordovaPlugin
     {
         super.onDestroy();
         // Destroy fingerprint sensor when it's not used
-        FingerVeinFactory.destroy(fingerVeinSensor);
+        FingerVeinFactory.destroy(FingerprintSensor);
     }
     */
 
@@ -118,7 +125,7 @@ public class zkFinger extends CordovaPlugin
         {
 
             //@ establish a connection to the device
-            startFingerVeinSensor(callbackContext);
+            startFingerprintSensor(callbackContext);
 
 
             if (action.equals("scan")) 
@@ -215,7 +222,7 @@ public class zkFinger extends CordovaPlugin
             if (bstart) callbackContext.error("Fingerprint capture already started!");
 
             //@ Start finger capture
-            fingerVeinSensor.open(0);
+            FingerprintSensor.open(0);
 
             final FingerVeinCaptureListener listener = new FingerVeinCaptureListener() 
             {
@@ -233,13 +240,13 @@ public class zkFinger extends CordovaPlugin
                         {
                             if(null != fpImage)
                             {
-                                // Bitmap bitmapFp = ToolUtils.renderCroppedGreyScaleBitmap(fpImage, fingerVeinSensor.getFpImgWidth(), fingerVeinSensor.getFpImgHeight());
+                                // Bitmap bitmapFp = ToolUtils.renderCroppedGreyScaleBitmap(fpImage, FingerprintSensor.getFpImgWidth(), FingerprintSensor.getFpImgHeight());
                                 // imageView.setImageBitmap(bitmapFp);
                                 callbackContext.success(fpImage.toString());
                             }
                             if (null != veinImage)
                             {
-                                // Bitmap bitmapVein = ToolUtils.renderCroppedGreyScaleBitmap(veinImage, fingerVeinSensor.getVeinImgWidth(), fingerVeinSensor.getVeinImgHeight());
+                                // Bitmap bitmapVein = ToolUtils.renderCroppedGreyScaleBitmap(veinImage, FingerprintSensor.getVeinImgWidth(), FingerprintSensor.getVeinImgHeight());
                                 // imageView2.setImageBitmap(bitmapVein);
                                 callbackContext.success(veinImage.toString());
                             }
@@ -384,9 +391,9 @@ public class zkFinger extends CordovaPlugin
             
             };
 
-            fingerVeinSensor.setFingerVeinCaptureListener(0, listener);
+            FingerprintSensor.setFingerVeinCaptureListener(0, listener);
 
-            fingerVeinSensor.startCapture(0);
+            FingerprintSensor.startCapture(0);
 
             bstart = true;
 
