@@ -12,11 +12,18 @@ import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
 import com.zkteco.android.biometric.core.utils.LogHelper;
 import com.zkteco.android.biometric.core.utils.ToolUtils;
-import com.zkteco.android.biometric.module.fingervein.FingerVeinCaptureListener;
-import com.zkteco.android.biometric.module.fingervein.FingerVeinFactory;
-import com.zkteco.android.biometric.module.fingervein.FingerVeinSensor;
-import com.zkteco.android.biometric.module.fingervein.FingerVeinService;
-import com.zkteco.android.biometric.module.fingervein.exception.FingerVeinException;
+
+import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener;
+import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
+import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
+import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
+import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
+
+// import com.zkteco.android.biometric.module.fingervein.FingerVeinCaptureListener;
+// import com.zkteco.android.biometric.module.fingervein.FingerVeinFactory;
+// import com.zkteco.android.biometric.module.fingervein.FingerVeinSensor;
+// import com.zkteco.android.biometric.module.fingervein.FingerVeinService;
+// import com.zkteco.android.biometric.module.fingervein.exception.FingerVeinException;
 import com.zkteco.zkfinger.FingerprintService;
 
 import java.io.BufferedWriter;
@@ -53,7 +60,7 @@ public class zkFinger extends CordovaPlugin
     private static final int VID = 6997;    //zkteco device VID always 6997
     private static final int PID = 0124;    //fvs100 PID always 512
 
-    private FingerVeinSensor fingerVeinSensor = null;
+    private FingerprintSensor fingerVeinSensor = null;
     private boolean bstart = false;
     private boolean bIsRegister = false;
     private int enrollCount = 3;
@@ -258,8 +265,8 @@ public class zkFinger extends CordovaPlugin
                         public void run() {
                             // LogHelper.d("captureError  errno=" + exp.getErrorCode() +
                             //         ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
-                            callbackContext.error("captureError  errno=" + exp.getErrorCode() +
-                            ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
+                            callbackContext.error("captureError  errno = " + exp.getErrorCode() +
+                            ", Internal error code: " + exp.getInternalErrorCode() + ", message=" + exp.getMessage());
                         }
                     });
                     cordova.getActivity().runOnUiThread(runnable);
