@@ -51,7 +51,7 @@ public class zkFinger extends CordovaPlugin
 {
 
     private static final int VID = 6997;    //zkteco device VID always 6997
-    private static final int PID = 512;    //fvs100 PID always 512
+    private static final int PID = 0124;    //fvs100 PID always 512
 
     private FingerVeinSensor fingerVeinSensor = null;
     private boolean bstart = false;
