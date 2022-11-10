@@ -12,13 +12,11 @@ import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
 import com.zkteco.android.biometric.core.utils.LogHelper;
 import com.zkteco.android.biometric.core.utils.ToolUtils;
-
-import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener;
-import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
-import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
-import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
-import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
-
+import com.zkteco.android.biometric.module.fingervein.FingerVeinCaptureListener;
+import com.zkteco.android.biometric.module.fingervein.FingerVeinFactory;
+import com.zkteco.android.biometric.module.fingervein.FingerVeinSensor;
+import com.zkteco.android.biometric.module.fingervein.FingerVeinService;
+import com.zkteco.android.biometric.module.fingervein.exception.FingerVeinException;
 import com.zkteco.zkfinger.FingerprintService;
 
 import java.io.BufferedWriter;
@@ -55,7 +53,7 @@ public class zkFinger extends CordovaPlugin
     private static final int VID = 0x1b55;    //zkteco device VID always 6997
     private static final int PID = 0x0124;    //fvs100 PID always 512
 
-    private FingerprintSensor fingerVeinSensor = null;
+    private FingerVeinSensor fingerVeinSensor = null;
     private boolean bstart = false;
     private boolean bIsRegister = false;
     private int enrollCount = 3;
@@ -78,7 +76,7 @@ public class zkFinger extends CordovaPlugin
             fingerprintParams.put(ParameterHelper.PARAM_KEY_VID, VID);
             //set pid
             fingerprintParams.put(ParameterHelper.PARAM_KEY_PID, PID);
-            fingerVeinSensor = FingprintFactory.createFingerprintSensor(context, TransportType.USB, fingerprintParams);
+            fingerVeinSensor = FingerVeinFactory.createFingerprintSensor(context, TransportType.USB, fingerprintParams);
 
         }
         catch(Exception e)
@@ -124,9 +122,8 @@ public class zkFinger extends CordovaPlugin
 
 
             if (action.equals("scan")) 
-            {        
-                fingerVeinSensor.open(0);   
-                //this.captureBio(callbackContext);
+            {           
+                this.captureBio(callbackContext);
                 return true;
             }
             else if(action.equals("write"))
@@ -207,208 +204,208 @@ public class zkFinger extends CordovaPlugin
 
 
     //@ OnBnBegin ==> captureBio
-//     public void captureBio(CallbackContext cbContext)
-//     {
-//         try 
-//         {
+    public void captureBio(CallbackContext cbContext)
+    {
+        try 
+        {
 
-//             final CallbackContext callbackContext = cbContext;
+            final CallbackContext callbackContext = cbContext;
 
-//             //@ if already started, desist from continuing
-//             if (bstart) callbackContext.error("Fingerprint capture already started!");
+            //@ if already started, desist from continuing
+            if (bstart) callbackContext.error("Fingerprint capture already started!");
 
-//             //@ Start finger capture
-//             fingerVeinSensor.open(0);
+            //@ Start finger capture
+            fingerVeinSensor.open(0);
 
-//             final FingerprintCaptureListener listener = new FingerprintCaptureListener() 
-//             {
+            final FingerVeinCaptureListener listener = new FingerVeinCaptureListener() 
+            {
 
-//                 //@ Handle a successful fingerprint capture
-//                 //@Override
-//                 public void captureOK(final byte[] fpImage, final byte[] veinImage) 
-//                 {
+                //@ Handle a successful fingerprint capture
+                @Override
+                public void captureOK(final byte[] fpImage, final byte[] veinImage) 
+                {
 
-//                     Runnable runnable = (new Runnable() 
-//                     {
+                    Runnable runnable = (new Runnable() 
+                    {
 
-//                         @Override
-//                         public void run() 
-//                         {
-//                             if(null != fpImage)
-//                             {
-//                                 // Bitmap bitmapFp = ToolUtils.renderCroppedGreyScaleBitmap(fpImage, fingerVeinSensor.getFpImgWidth(), fingerVeinSensor.getFpImgHeight());
-//                                 // imageView.setImageBitmap(bitmapFp);
-//                                 callbackContext.success(fpImage.toString());
-//                             }
-//                             if (null != veinImage)
-//                             {
-//                                 // Bitmap bitmapVein = ToolUtils.renderCroppedGreyScaleBitmap(veinImage, fingerVeinSensor.getVeinImgWidth(), fingerVeinSensor.getVeinImgHeight());
-//                                 // imageView2.setImageBitmap(bitmapVein);
-//                                 callbackContext.success(veinImage.toString());
-//                             }
-//                         }
-//                     });
-//                     cordova.getActivity().runOnUiThread(runnable);
+                        @Override
+                        public void run() 
+                        {
+                            if(null != fpImage)
+                            {
+                                // Bitmap bitmapFp = ToolUtils.renderCroppedGreyScaleBitmap(fpImage, fingerVeinSensor.getFpImgWidth(), fingerVeinSensor.getFpImgHeight());
+                                // imageView.setImageBitmap(bitmapFp);
+                                callbackContext.success(fpImage.toString());
+                            }
+                            if (null != veinImage)
+                            {
+                                // Bitmap bitmapVein = ToolUtils.renderCroppedGreyScaleBitmap(veinImage, fingerVeinSensor.getVeinImgWidth(), fingerVeinSensor.getVeinImgHeight());
+                                // imageView2.setImageBitmap(bitmapVein);
+                                callbackContext.success(veinImage.toString());
+                            }
+                        }
+                    });
+                    cordova.getActivity().runOnUiThread(runnable);
                     
-//                 }
+                }
 
-//                 //@ Handle an unsuccessful fingerprint capture
-//                 @Override
-//                 public void captureError(FingerprintException e) {
-//                     final FingerprintException exp = e;
-//                     Runnable runnable = (new Runnable() {
-//                         @Override
-//                         public void run() {
-//                             // LogHelper.d("captureError  errno=" + exp.getErrorCode() +
-//                             //         ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
-//                             callbackContext.error("captureError  errno=" + exp.getErrorCode() +
-//                             ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
-//                         }
-//                     });
-//                     cordova.getActivity().runOnUiThread(runnable);
-//                 }
+                //@ Handle an unsuccessful fingerprint capture
+                @Override
+                public void captureError(FingerVeinException e) {
+                    final FingerVeinException exp = e;
+                    Runnable runnable = (new Runnable() {
+                        @Override
+                        public void run() {
+                            // LogHelper.d("captureError  errno=" + exp.getErrorCode() +
+                            //         ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
+                            callbackContext.error("captureError  errno=" + exp.getErrorCode() +
+                            ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
+                        }
+                    });
+                    cordova.getActivity().runOnUiThread(runnable);
+                }
 
-//                 //@ Handle a finger vein extraction error
-//                 @Override
-//                 public void extractError(final int err)
-//                 {
-//                     Runnable runnable = (new Runnable() {
-//                         @Override
-//                         public void run() {
-//                             // textView.setText("extract fail, errorcode:" + err);
-//                             callbackContext.error("extract fail, errorcode:" + err);
-//                         }
-//                     });
-//                     cordova.getActivity().runOnUiThread(runnable);
-//                 }
+                //@ Handle a finger vein extraction error
+                @Override
+                public void extractError(final int err)
+                {
+                    Runnable runnable = (new Runnable() {
+                        @Override
+                        public void run() {
+                            // textView.setText("extract fail, errorcode:" + err);
+                            callbackContext.error("extract fail, errorcode:" + err);
+                        }
+                    });
+                    cordova.getActivity().runOnUiThread(runnable);
+                }
 
-//                 //@ Handle a successful palm vein extraction
-//                 //@Override
-//                 public void extractOK(final byte[] fpTemplate, final String fvTemplate)
-//                 {
-//                     Runnable runnable = (new Runnable() {
-//                         @Override
-//                         public void run() {
-//                             if (bIsRegister)
-//                             {
+                //@ Handle a successful palm vein extraction
+                @Override
+                public void extractOK(final byte[] fpTemplate, final String fvTemplate)
+                {
+                    Runnable runnable = (new Runnable() {
+                        @Override
+                        public void run() {
+                            if (bIsRegister)
+                            {
 
-//                                 regFVTemplates[enrollIndex] = fvTemplate;
+                                regFVTemplates[enrollIndex] = fvTemplate;
 
-//                                 System.arraycopy(fpTemplate, 0, regFPTemparray[enrollIndex], 0, fpTemplate.length);
-//                                 if (enrollIndex > 1)
-//                                 {
+                                System.arraycopy(fpTemplate, 0, regFPTemparray[enrollIndex], 0, fpTemplate.length);
+                                if (enrollIndex > 1)
+                                {
 
-//                                     if (FingerVeinService.matchFinger(regFPTemparray[enrollIndex-1], regFPTemparray[enrollIndex]) <= 0 ||
-//                                             FingerVeinService.matchFingerVein(regFVTemplates[enrollIndex-1], regFVTemplates[enrollIndex]) <= 0)
-//                                     {
-//                                         enrollIndex = 0;                                        
-//                                         // textView.setText("Please press the same finger while registering");
-//                                         // return;
-//                                         // callbackContext.
+                                    if (FingerVeinService.matchFinger(regFPTemparray[enrollIndex-1], regFPTemparray[enrollIndex]) <= 0 ||
+                                            FingerVeinService.matchFingerVein(regFVTemplates[enrollIndex-1], regFVTemplates[enrollIndex]) <= 0)
+                                    {
+                                        enrollIndex = 0;                                        
+                                        // textView.setText("Please press the same finger while registering");
+                                        // return;
+                                        // callbackContext.
 
-//                                         alert(
-//                                             "Please press the same finger while registering",
-//                                             "Finger Capture Error", 
-//                                             "OK", 
-//                                             callbackContext
-//                                         );
+                                        alert(
+                                            "Please press the same finger while registering",
+                                            "Finger Capture Error", 
+                                            "OK", 
+                                            callbackContext
+                                        );
                                         
-//                                     }
-//                                 }
-//                                 enrollIndex++;
-//                                 if (enrollIndex == enrollCount)
-//                                 {
-//                                     byte[] regFPTemp = new byte[2048];
-//                                     int ret = 0;
-//                                        if (0 < (ret = FingerprintService.merge(regFPTemparray[0], regFPTemparray[1], regFPTemparray[2], regFPTemp)))
-//                                     {
-//                                         String strID = "test"+regID++;
-//                                         if (0 == (ret = FingerVeinService.addRegTemplate(strID, regFPTemp, regFVTemplates)))
-//                                         {
-//                                             // textView.setText("enroll succ");
-//                                             callbackContext.success(regFPTemp.toString());
-//                                         }
-//                                         else
-//                                         {
-//                                             callbackContext.error("enroll failed, addRegTemplate ret=" + ret);
-//                                             // textView.setText("enroll failed, addRegTemplate ret=" + ret);
-//                                         }
-//                                     }
-//                                     else
-//                                     {
-//                                         // textView.setText("enroll failed, merge ret=" + ret);
-//                                         callbackContext.error("enroll failed, merge ret=" + ret);
-//                                     }
-//                                     bIsRegister = false;
-//                                 }
-//                                 else
-//                                 {
-//                                     // textView.setText("Please press your finger(" + (enrollCount-enrollIndex) + ").");
-//                                     alert(
-//                                         "Please press your finger(" + (enrollCount-enrollIndex) + ").", 
-//                                         "Notice", 
-//                                         "OK", 
-//                                         callbackContext
-//                                     );
-//                                 }
-//                             }
-//                             else
-//                             {
-//                                 //writeTemplateToFile("/storage/emulated/0/zkfv.txt", fvTemplate);
-//                                 byte[] idsfp = new byte[1024];
-//                                 String strLog = "";
-//                                 if (FingerVeinService.identifyFinger(fpTemplate, idsfp, 1) >0 ){
-//                                     String strRes[] = new String(idsfp).split("\t");
-//                                     strLog += "Identify Fingerprint Succ, id=" + strRes[0] + ",score=" + strRes[1];
-//                                 }
-//                                 else
-//                                 {
-//                                     strLog += "Identify Fingerprint fail";
-//                                 }
-//                                 byte[] idsfv = new byte[1024];
-//                                 int ret = 0;
-//                                 if ((ret = FingerVeinService.identifyFingerVein(fvTemplate, idsfv, 1)) >= 0)
-//                                 {
-//                                     String strRes[] = new String(idsfv).split("\t");
-//                                     strLog += "\nIdentify Fingervein Succ, id=" + strRes[0] + ",score=" + strRes[1];
-//                                 }
-//                                 else
-//                                 {
-//                                     strLog += "\n Identify Fingervein Fail";
-//                                 }
-//                                 // textView.setText(strLog);
-//                                 callbackContext.success(strLog);
-//                             }
-//                             //textView.setText("提取模板成功");
-//                         }
-//                     });
-//                     cordova.getActivity().runOnUiThread(runnable);
-//                 }
+                                    }
+                                }
+                                enrollIndex++;
+                                if (enrollIndex == enrollCount)
+                                {
+                                    byte[] regFPTemp = new byte[2048];
+                                    int ret = 0;
+                                       if (0 < (ret = FingerprintService.merge(regFPTemparray[0], regFPTemparray[1], regFPTemparray[2], regFPTemp)))
+                                    {
+                                        String strID = "test"+regID++;
+                                        if (0 == (ret = FingerVeinService.addRegTemplate(strID, regFPTemp, regFVTemplates)))
+                                        {
+                                            // textView.setText("enroll succ");
+                                            callbackContext.success(regFPTemp.toString());
+                                        }
+                                        else
+                                        {
+                                            callbackContext.error("enroll failed, addRegTemplate ret=" + ret);
+                                            // textView.setText("enroll failed, addRegTemplate ret=" + ret);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // textView.setText("enroll failed, merge ret=" + ret);
+                                        callbackContext.error("enroll failed, merge ret=" + ret);
+                                    }
+                                    bIsRegister = false;
+                                }
+                                else
+                                {
+                                    // textView.setText("Please press your finger(" + (enrollCount-enrollIndex) + ").");
+                                    alert(
+                                        "Please press your finger(" + (enrollCount-enrollIndex) + ").", 
+                                        "Notice", 
+                                        "OK", 
+                                        callbackContext
+                                    );
+                                }
+                            }
+                            else
+                            {
+                                //writeTemplateToFile("/storage/emulated/0/zkfv.txt", fvTemplate);
+                                byte[] idsfp = new byte[1024];
+                                String strLog = "";
+                                if (FingerVeinService.identifyFinger(fpTemplate, idsfp, 1) >0 ){
+                                    String strRes[] = new String(idsfp).split("\t");
+                                    strLog += "Identify Fingerprint Succ, id=" + strRes[0] + ",score=" + strRes[1];
+                                }
+                                else
+                                {
+                                    strLog += "Identify Fingerprint fail";
+                                }
+                                byte[] idsfv = new byte[1024];
+                                int ret = 0;
+                                if ((ret = FingerVeinService.identifyFingerVein(fvTemplate, idsfv, 1)) >= 0)
+                                {
+                                    String strRes[] = new String(idsfv).split("\t");
+                                    strLog += "\nIdentify Fingervein Succ, id=" + strRes[0] + ",score=" + strRes[1];
+                                }
+                                else
+                                {
+                                    strLog += "\n Identify Fingervein Fail";
+                                }
+                                // textView.setText(strLog);
+                                callbackContext.success(strLog);
+                            }
+                            //textView.setText("提取模板成功");
+                        }
+                    });
+                    cordova.getActivity().runOnUiThread(runnable);
+                }
             
-//             };
+            };
 
-//             fingerVeinSensor.setFingerVeinCaptureListener(0, listener);
+            fingerVeinSensor.setFingerVeinCaptureListener(0, listener);
 
-//             fingerVeinSensor.startCapture(0);
+            fingerVeinSensor.startCapture(0);
 
-//             bstart = true;
+            bstart = true;
 
-//             alert(
-//                 "Now Capturing biometrics", 
-//                 "NOTICE", 
-//                 "Continue", 
-//                 callbackContext
-//             );
-//             // textView.setText("start capture succ");
+            alert(
+                "Now Capturing biometrics", 
+                "NOTICE", 
+                "Continue", 
+                callbackContext
+            );
+            // textView.setText("start capture succ");
 
-//         }
-//         catch (FingerprintException e)
-//         {
-// //            textView.setText("begin capture fail.errorcode:"+ e.getErrorCode() + "err message:" + e.getMessage() + "inner code:" + e.getInternalErrorCode());
-//             cbContext.error("begin capture fail.errorcode:"+ e.getErrorCode() + "err message:" + e.getMessage() + "inner code:" + e.getInternalErrorCode());
-//         }
+        }
+        catch (FingerVeinException e)
+        {
+//            textView.setText("begin capture fail.errorcode:"+ e.getErrorCode() + "err message:" + e.getMessage() + "inner code:" + e.getInternalErrorCode());
+            cbContext.error("begin capture fail.errorcode:"+ e.getErrorCode() + "err message:" + e.getMessage() + "inner code:" + e.getInternalErrorCode());
+        }
 
-//     }
+    }
 
 
 
