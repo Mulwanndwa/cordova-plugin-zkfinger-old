@@ -28,7 +28,6 @@
 		<!-- <config-file parent="/*" target="AndroidManifest.xml"></config-file> -->
 		<!-- <source-file src="src/android/io.bixbyte.zkFinger3.jar" target-dir="libs" framework="true" /> -->
 		<lib-file src="src/android/zkandroidcore.jar" />
-		<lib-file src="src/android/zkandroidfvsensor.jar"/>
 		<lib-file src="src/android/zkandroidfpreader.jar"/>
 		<source-file src="src/android/zkFinger.java" target-dir="src/cordova/plugin/zkteco/scan/zkFinger" />
 		<source-file src="src/android/device_filter.xml" target-dir="res/xml" />
