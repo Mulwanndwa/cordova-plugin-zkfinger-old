@@ -8,15 +8,26 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import android.content.Context;
 
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
+
 import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
 import com.zkteco.android.biometric.core.utils.LogHelper;
 import com.zkteco.android.biometric.core.utils.ToolUtils;
+
+import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener;
+import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
+import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
+import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
+import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
+
 import com.zkteco.android.biometric.module.fingervein.FingerVeinCaptureListener;
 import com.zkteco.android.biometric.module.fingervein.FingerVeinFactory;
 import com.zkteco.android.biometric.module.fingervein.FingerVeinSensor;
 import com.zkteco.android.biometric.module.fingervein.FingerVeinService;
 import com.zkteco.android.biometric.module.fingervein.exception.FingerVeinException;
+
 import com.zkteco.zkfinger.FingerprintService;
 
 import java.io.BufferedWriter;
@@ -50,10 +61,12 @@ import org.apache.cordova.PluginResult;
 public class zkFinger extends CordovaPlugin 
 {
 
-    private static final int VID = 0x1b55;    //zkteco device VID always 6997
+    private static final int VID = 6997;    //zkteco device VID always 6997
     private static final int PID = 0x0124;    //fvs100 PID always 512
 
     private FingerVeinSensor fingerVeinSensor = null;
+    private FingerprintSensor fingerprintSensor = null;
+
     private boolean bstart = false;
     private boolean bIsRegister = false;
     private int enrollCount = 3;
@@ -71,12 +84,16 @@ public class zkFinger extends CordovaPlugin
             Context context = cordova.getActivity().getApplicationContext();
 
             // Start fingerprint sensor
+            LogHelper.setLevel(Log.VERBOSE);
+            // Start fingerprint sensor
             Map fingerprintParams = new HashMap();
             //set vid
             fingerprintParams.put(ParameterHelper.PARAM_KEY_VID, VID);
             //set pid
             fingerprintParams.put(ParameterHelper.PARAM_KEY_PID, PID);
-            fingerVeinSensor = FingerVeinFactory.createFingerprintSensor(context, TransportType.USB, fingerprintParams);
+            fingerprintSensor = FingprintFactory.createFingerprintSensor(this, TransportType.USB, fingerprintParams);
+            fingerprintSensor.open(0);
+            callbackContext.error("Opened!!!");
 
         }
         catch(Exception e)
@@ -85,15 +102,15 @@ public class zkFinger extends CordovaPlugin
         }
     }
 
-    /*
-    @Override
-    protected void onDestroy() 
-    {
-        super.onDestroy();
-        // Destroy fingerprint sensor when it's not used
-        FingerVeinFactory.destroy(fingerVeinSensor);
-    }
-    */
+    
+    // @Override
+    // protected void onDestroy() 
+    // {
+    //     super.onDestroy();
+    //     // Destroy fingerprint sensor when it's not used
+    //     FingerVeinFactory.destroy(fingerVeinSensor);
+    // }
+    
 
     public int[] json2int (JSONArray arr)
     {
@@ -122,9 +139,12 @@ public class zkFinger extends CordovaPlugin
 
 
             if (action.equals("scan")) 
-            {           
-                this.captureBio(callbackContext);
-                return true;
+            {         
+
+                //callbackContext.error("Working!!!");  
+                //FingerVeinFactory.destroy(fingerVeinSensor);
+                // this.captureBio(callbackContext);
+                // return true;
             }
             else if(action.equals("write"))
             {
@@ -212,11 +232,11 @@ public class zkFinger extends CordovaPlugin
             final CallbackContext callbackContext = cbContext;
 
             //@ if already started, desist from continuing
+
             if (bstart) callbackContext.error("Fingerprint capture already started!");
 
             //@ Start finger capture
             fingerVeinSensor.open(0);
-
             final FingerVeinCaptureListener listener = new FingerVeinCaptureListener() 
             {
 
@@ -224,7 +244,7 @@ public class zkFinger extends CordovaPlugin
                 @Override
                 public void captureOK(final byte[] fpImage, final byte[] veinImage) 
                 {
-
+                    callbackContext.error(fingerVeinSensor.toString());
                     Runnable runnable = (new Runnable() 
                     {
 
@@ -389,7 +409,7 @@ public class zkFinger extends CordovaPlugin
             fingerVeinSensor.startCapture(0);
 
             bstart = true;
-
+            //callbackContext.error("Fingerprint capture already started!");
             alert(
                 "Now Capturing biometrics", 
                 "NOTICE", 
